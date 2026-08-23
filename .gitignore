@@ -1,0 +1,9 @@
+
+*.vcxproj*
+*.spv
+
+.vs/*
+x64/*
+x32/*
+ConsoleApplication1/x64/*
+
