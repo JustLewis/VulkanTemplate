@@ -34,14 +34,17 @@ private:
     GLFWwindow* Window;
     const uint32_t Width = 1920, Height = 1080;
 
+    const int MAX_FRAMES_IN_FLIGHT = 2;
+    uint32_t CurrentFrame = 0;
+
     VkInstance Instance;
     VkDebugUtilsMessengerEXT DebugMessenger;
     VkPhysicalDevice PhysicalDevice = VK_NULL_HANDLE;
     VkDevice LogicalDevice = VK_NULL_HANDLE;
     VkQueue GraphicsQueue = VK_NULL_HANDLE;
     VkSurfaceKHR VKSurface = VK_NULL_HANDLE;
-    VkQueue PresentQueue = VK_NULL_HANDLE;
-    VkSwapchainKHR SwapChain = VK_NULL_HANDLE;
+    VkQueue PresentQueue;
+    VkSwapchainKHR SwapChain;
     
     std::vector<VkImage> SwapChainImages;
     VkFormat SwapChainImageFormat;
@@ -52,10 +55,10 @@ private:
     VkPipelineLayout PipelineLayout;
     VkPipeline GraphicsPipeline;
     VkCommandPool CommandPool;
-    VkCommandBuffer CommandBuffer;
-    VkSemaphore ImageAvailableSemaphore;
-    VkSemaphore RenderFinishedSemaphore;
-    VkFence Fence;
+    std::vector<VkCommandBuffer> CommandBuffers;
+    std::vector<VkSemaphore> ImageAvailableSemaphores;
+    std::vector<VkSemaphore> RenderFinishedSemaphores;
+    std::vector<VkFence> InFlightFences;
 
     std::vector<VkFramebuffer> SwapChainFramebuffers;
 
@@ -79,7 +82,7 @@ private:
 
     void CreateSurface();
 
-    void createVKInstance();
+    void CreateVKInstance();
     void CreateVKDebugMessenger();
     void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
     void PickPhysicalDevice();
