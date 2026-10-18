@@ -572,7 +572,7 @@ void Renderer::CreateCommandBuffer() {
 
 void Renderer::CreateSyncObjects() {
     ImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-    RenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    
     InFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
     VkSemaphoreCreateInfo SemaphoreInfo{};
     SemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -582,9 +582,19 @@ void Renderer::CreateSyncObjects() {
     FenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         if (vkCreateSemaphore(LogicalDevice, &SemaphoreInfo, nullptr, &ImageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(LogicalDevice, &SemaphoreInfo, nullptr, &RenderFinishedSemaphores[i]) != VK_SUCCESS ||
+            //vkCreateSemaphore(LogicalDevice, &SemaphoreInfo, nullptr, &RenderFinishedSemaphores[i]) != VK_SUCCESS ||
             vkCreateFence(LogicalDevice, &FenceInfo, nullptr, &InFlightFences[i]) != VK_SUCCESS) {
             throw std::runtime_error("Some fuck up with creating semaphores or Fence.");
+        }
+    }
+
+    RenderFinishedSemaphores.resize(SwapChainImages.size());
+
+    std::cerr << "Swap chain image size: " << SwapChainImages.size() << std::endl;
+
+    for (size_t i = 0; i < SwapChainImages.size(); i++) {
+        if (vkCreateSemaphore(LogicalDevice, &SemaphoreInfo, nullptr, &RenderFinishedSemaphores[i]) != VK_SUCCESS) {
+            throw std::runtime_error("Some fuck up with making render finished semaphores.");
         }
     }
 }
@@ -614,7 +624,7 @@ void Renderer::DrawFrame() {
     SubmitInfo.commandBufferCount = 1;
     SubmitInfo.pCommandBuffers = &CommandBuffers[CurrentFrame];
 
-    VkSemaphore SignalSemaphores[] = { RenderFinishedSemaphores[CurrentFrame] };
+    VkSemaphore SignalSemaphores[] = { RenderFinishedSemaphores[ImageIndex] };
     SubmitInfo.signalSemaphoreCount = 1;
     SubmitInfo.pSignalSemaphores = SignalSemaphores;
 
@@ -811,8 +821,12 @@ QueueFamilyIndices Renderer::FindQueueFamilies(VkPhysicalDevice Device)
 void Renderer::cleanup() {
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(LogicalDevice, ImageAvailableSemaphores[i], nullptr);
-        vkDestroySemaphore(LogicalDevice, RenderFinishedSemaphores[i], nullptr);
+        
         vkDestroyFence(LogicalDevice, InFlightFences[i], nullptr);
+    }
+
+    for (size_t i = 0; i < RenderFinishedSemaphores.size(); i ++) {
+        vkDestroySemaphore(LogicalDevice, RenderFinishedSemaphores[i], nullptr);
     }
 
     vkDestroyCommandPool(LogicalDevice, CommandPool, nullptr);

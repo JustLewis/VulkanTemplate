@@ -34,7 +34,7 @@ private:
     GLFWwindow* Window;
     const uint32_t Width = 1920, Height = 1080;
 
-    const int MAX_FRAMES_IN_FLIGHT = 2;
+    const int MAX_FRAMES_IN_FLIGHT = 3;
     uint32_t CurrentFrame = 0;
 
     VkInstance Instance;
